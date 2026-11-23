@@ -245,4 +245,523 @@ footer{
 <body>
 
 <header>
-<h1>🧠 ضرب‌آموز
+<h1>🧠 ضرب‌آموز</h1>
+<p>با تمرین و بازی، جدول ضرب را یاد بگیر!</p>
+</header>
+
+<div class="container">
+
+<div class="stats">
+
+ <div class="stat">
+ ⭐ امتیاز
+ <strong id="score">0</strong>
+ </div>
+
+ <div class="stat">
+ 🏆 پاسخ درست
+ <strong id="correct">0</strong>
+ </div>
+
+</div>
+
+<h2>📚 انتخاب جدول ضرب</h2>
+
+<div class="tables" id="tables"></div>
+
+<div class="panel">
+
+<h2>📖 آموزش جدول</h2>
+
+<div id="lesson"></div>
+
+<button class="secondary" onclick="nextLesson()">
+مثال بعدی ←
+</button>
+
+</div>
+
+<div class="panel">
+
+<h2>🎯 تمرین ضرب</h2>
+
+<div class="mode-setting">
+
+ <div>
+  <label for="randomMode">
+   <strong>🎲 سؤال‌های تصادفی</strong>
+  </label>
+
+  <div class="mode-description" id="modeDescription">
+   سؤال‌ها به‌صورت شانسی نمایش داده می‌شوند.
+  </div>
+ </div>
+
+ <input type="checkbox" id="randomMode" checked>
+
+</div>
+
+<div id="question" class="equation">
+برای شروع دکمه را بزن!
+</div>
+
+<input
+ id="answer"
+ type="number"
+ inputmode="numeric"
+ placeholder="جوابت را بنویس"
+>
+
+<button class="primary" onclick="checkAnswer()">
+بررسی جواب
+</button>
+
+<div id="feedback"></div>
+
+<button class="secondary" onclick="newQuestion()">
+سؤال بعدی
+</button>
+
+<div class="progress">
+ <div id="bar"></div>
+</div>
+
+</div>
+
+<button class="secondary" onclick="resetProgress()">
+پاک کردن امتیازها
+</button>
+
+
+<!-- تماس با برنامه نویس -->
+
+<div class="contact">
+
+<button
+ class="contact-title"
+ onclick="toggleContact()"
+>
+👨‍💻 تماس با برنامه‌نویس
+</button>
+
+<div id="contactInfo" class="contact-info">
+
+ <div class="contact-name">
+ سید پارسا صبوحی
+ </div>
+
+ <div>شماره تماس:</div>
+
+ <span class="contact-phone">
+ 09231271192
+ </span>
+
+ <button class="contact-copy" onclick="copyPhone()">
+ 📋 کپی شماره تماس
+ </button>
+
+</div>
+
+</div>
+
+</div>
+
+<footer>
+ضرب‌آموز | قدم به قدم یاد بگیر ❤️
+</footer>
+
+<script>
+
+let selected=1;
+let lessonNumber=1;
+
+let a=1;
+let b=1;
+
+let sequentialNumber=1;
+let allSequentialTable=1;
+
+let allTables=false;
+let answered=false;
+
+let score=Number(localStorage.score||0);
+let correct=Number(localStorage.correct||0);
+
+const tables=document.getElementById('tables');
+const randomMode=document.getElementById('randomMode');
+
+randomMode.checked=localStorage.randomMode!=='false';
+
+
+// ساخت دکمه‌های جدول ۱ تا ۱۰
+
+for(let i=1;i<=10;i++){
+
+ const btn=document.createElement('button');
+
+ btn.textContent=i;
+
+ btn.onclick=()=>selectTable(i);
+
+ tables.appendChild(btn);
+
+}
+
+
+// دکمه همه جدول‌ها
+
+const allBtn=document.createElement('button');
+
+allBtn.textContent='🎲 همه جدول‌ها';
+
+allBtn.className='all-tables';
+
+allBtn.onclick=selectAllTables;
+
+tables.appendChild(allBtn);
+
+
+// به‌روزرسانی امتیازها
+
+function updateStats(){
+
+ document.getElementById('score').textContent=score;
+
+ document.getElementById('correct').textContent=correct;
+
+ document.getElementById('bar').style.width=
+ (correct%11)*9+'%';
+
+ localStorage.score=score;
+
+ localStorage.correct=correct;
+
+}
+
+
+// انتخاب جدول مشخص
+
+function selectTable(n){
+
+ allTables=false;
+
+ selected=n;
+
+ lessonNumber=1;
+
+ sequentialNumber=1;
+
+ [...tables.children].forEach((btn,i)=>{
+
+  btn.classList.toggle('active',i+1===n);
+
+ });
+
+ showLesson();
+
+ newQuestion();
+
+}
+
+
+// انتخاب همه جدول‌ها
+
+function selectAllTables(){
+
+ allTables=true;
+
+ sequentialNumber=1;
+
+ allSequentialTable=1;
+
+ [...tables.children].forEach(btn=>{
+  btn.classList.remove('active');
+ });
+
+ allBtn.classList.add('active');
+
+ showLesson();
+
+ newQuestion();
+
+}
+
+
+// نمایش آموزش
+
+function showLesson(){
+
+ if(allTables){
+
+  document.getElementById('lesson').textContent=
+  '🎲 حالت همه جدول‌ها فعال است!';
+
+  return;
+
+ }
+
+ document.getElementById('lesson').innerHTML=
+
+ `<div class="equation">
+ <span class="ltr">
+ ${selected} × ${lessonNumber} = ${selected*lessonNumber}
+ </span>
+ </div>
+
+ <div>
+ <span class="ltr">${selected}</span>
+ گروه
+ <span class="ltr">${lessonNumber}</span>
+ تایی می‌شود
+ <span class="ltr">${selected*lessonNumber}</span>
+ </div>`;
+
+}
+
+
+// مثال بعدی آموزش
+
+function nextLesson(){
+
+ if(allTables){
+  return;
+ }
+
+ lessonNumber++;
+
+ if(lessonNumber>10){
+  lessonNumber=1;
+ }
+
+ showLesson();
+
+}
+
+
+// تغییر حالت تصادفی
+
+function updateMode(){
+
+ localStorage.randomMode=randomMode.checked;
+
+ document.getElementById('modeDescription').textContent=
+
+ randomMode.checked
+ ? 'سؤال‌ها به‌صورت شانسی نمایش داده می‌شوند.'
+ : 'سؤال‌ها به ترتیب نمایش داده می‌شوند.';
+
+}
+
+randomMode.addEventListener('change',()=>{
+
+ updateMode();
+
+ sequentialNumber=1;
+
+ allSequentialTable=1;
+
+ newQuestion();
+
+});
+
+
+// ساخت سؤال جدید
+
+function newQuestion(){
+
+ if(allTables){
+
+  if(randomMode.checked){
+
+   a=Math.floor(Math.random()*10)+1;
+
+   b=Math.floor(Math.random()*10)+1;
+
+  }else{
+
+   a=allSequentialTable;
+
+   b=sequentialNumber;
+
+   sequentialNumber++;
+
+   if(sequentialNumber>10){
+
+    sequentialNumber=1;
+
+    allSequentialTable++;
+
+    if(allSequentialTable>10){
+     allSequentialTable=1;
+    }
+
+   }
+
+  }
+
+ }else{
+
+  a=selected;
+
+  if(randomMode.checked){
+
+   b=Math.floor(Math.random()*10)+1;
+
+  }else{
+
+   b=sequentialNumber;
+
+   sequentialNumber++;
+
+   if(sequentialNumber>10){
+    sequentialNumber=1;
+   }
+
+  }
+
+ }
+
+ answered=false;
+
+ document.getElementById('question').innerHTML=
+
+ `<span class="ltr">${a} × ${b} = ؟</span>`;
+
+ document.getElementById('answer').value='';
+
+ document.getElementById('feedback').textContent='';
+
+}
+
+
+// بررسی جواب
+
+function checkAnswer(){
+
+ if(answered)return;
+
+ const input=document.getElementById('answer');
+
+ const feedback=document.getElementById('feedback');
+
+ if(input.value.trim()===''){
+
+  feedback.textContent='اول جواب را بنویس!';
+
+  return;
+
+ }
+
+ answered=true;
+
+ const value=Number(input.value);
+
+ if(value===a*b){
+
+  score+=10;
+
+  correct++;
+
+  feedback.textContent='🎉 آفرین! جواب درست است.';
+
+  feedback.style.color='green';
+
+ }else{
+
+  feedback.innerHTML=
+
+  `جواب درست <span class="ltr">${a*b}</span> است. دوباره تمرین کن!`;
+
+  feedback.style.color='#d45b55';
+
+ }
+
+ updateStats();
+
+}
+
+
+// پاک کردن امتیازها
+
+function resetProgress(){
+
+ if(confirm('امتیازها و پیشرفتت پاک شوند؟')){
+
+  score=0;
+
+  correct=0;
+
+  updateStats();
+
+ }
+
+}
+
+
+// Enter برای بررسی جواب
+
+document.getElementById('answer').addEventListener('keydown',e=>{
+
+ if(e.key==='Enter'){
+  checkAnswer();
+ }
+
+});
+
+
+// نمایش و مخفی کردن اطلاعات برنامه نویس
+
+function toggleContact(){
+
+ document.getElementById('contactInfo')
+ .classList.toggle('show');
+
+}
+
+
+// کپی شماره تماس
+
+async function copyPhone(){
+
+ const phone='09231271192';
+
+ try{
+
+  await navigator.clipboard.writeText(phone);
+
+  alert('شماره تماس کپی شد!');
+
+ }catch(error){
+
+  const input=document.createElement('textarea');
+
+  input.value=phone;
+
+  document.body.appendChild(input);
+
+  input.select();
+
+  const success=document.execCommand('copy');
+
+  input.remove();
+
+  alert(success?'شماره تماس کپی شد!':'امکان کپی شماره وجود ندارد.');
+
+ }
+
+}
+
+
+// شروع برنامه
+
+updateMode();
+
+updateStats();
+
+selectTable(1);
+
+</script>
+
+</body>
+</html>
+```
