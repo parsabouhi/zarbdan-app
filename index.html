@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6657e8">
+<title>ضرب‌آموز | یادگیری جدول ضرب</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;font-family:Tahoma,Arial,sans-serif;
+ background:#f3f2ff;color:#252343;
+}
+header{
+ background:linear-gradient(135deg,#6657e8,#9278f5);
+ color:white;padding:25px 18px 35px;
+ border-radius:0 0 28px 28px;
+}
+header h1{margin:0 0 10px;font-size:26px}
+header p{margin:0;font-size:14px;opacity:.9}
+.container{max-width:600px;margin:auto;padding:18px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:-15px}
+.stat,.panel{
+ background:white;border-radius:17px;padding:17px;
+ box-shadow:0 5px 20px #27204b0c;
+}
+.stat{text-align:center}
+.stat strong{display:block;font-size:25px;color:#6657e8;margin-top:7px}
+h2{font-size:19px;margin:23px 0 12px}
+button{
+ border:0;border-radius:12px;padding:13px;
+ font-family:inherit;font-size:15px;cursor:pointer;
+}
+.tables{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.tables button{background:#eeecff;color:#5545ce;font-weight:bold}
+.tables button.active{background:#6657e8;color:white}
+.panel{margin-top:15px}
+#lesson{text-align:center;line-height:2.2}
+.equation{font-size:26px;font-weight:bold;color:#6657e8;margin:12px}
+.primary{background:#6657e8;color:white;width:100%;margin-top:12px}
+.secondary{background:#eeecff;color:#5545ce;width:100%;margin-top:10px}
+input{
+ width:100%;padding:15px;border:2px solid #e4e1f6;
+ border-radius:12px;font-size:22px;text-align:center;
+ font-family:inherit;outline:none;
+}
+input:focus{border-color:#6657e8}
+#feedback{text-align:center;min-height:30px;font-weight:bold;margin-top:12px}
+.hidden{display:none}
+.progress{height:10px;background:#eee;border-radius:10px;overflow:hidden;margin-top:12px}
+#bar{height:100%;width:0;background:#6657e8;transition:.3s}
+footer{text-align:center;color:#888;font-size:12px;padding:25px}
+</style>
+</head>
+<body>
+<header>
+<h1>🧠 ضرب‌آموز</h1>
+<p>با تمرین و بازی، جدول ضرب را یاد بگیر!</p>
+</header>
+
+<div class="container">
+<div class="stats">
+ <div class="stat">⭐ امتیاز<strong id="score">0</strong></div>
+ <div class="stat">🏆 پاسخ درست<strong id="correct">0</strong></div>
+</div>
+
+<h2>📚 انتخاب جدول ضرب</h2>
+<div class="tables" id="tables"></div>
+
+<div class="panel">
+<h2>📖 آموزش جدول</h2>
+<div id="lesson"></div>
+<button class="secondary" onclick="nextLesson()">مثال بعدی ←</button>
+</div>
+
+<div class="panel">
+<h2>🎯 تمرین ضرب</h2>
+<div id="question" class="equation">برای شروع دکمه را بزن!</div>
+<input id="answer" type="number" inputmode="numeric" placeholder="جوابت را بنویس">
+<button class="primary" onclick="checkAnswer()">بررسی جواب</button>
+<div id="feedback"></div>
+<button class="secondary" onclick="newQuestion()">سؤال بعدی</button>
+<div class="progress"><div id="bar"></div></div>
+</div>
+
+<button class="secondary" onclick="resetProgress()">پاک کردن امتیازها</button>
+</div>
+<footer>ضرب‌آموز | قدم به قدم یاد بگیر ❤️</footer>
+
+<script>
+let selected=1;
+let lessonNumber=1;
+let a=1,b=1;
+let score=Number(localStorage.score||0);
+let correct=Number(localStorage.correct||0);
+let answered=false;
+
+const tables=document.getElementById('tables');
+
+for(let i=1;i<=10;i++){
+ const btn=document.createElement('button');
+ btn.textContent=i;
+ btn.onclick=()=>selectTable(i);
+ tables.appendChild(btn);
+}
+
+function updateStats(){
+ document.getElementById('score').textContent=score;
+ document.getElementById('correct').textContent=correct;
+ document.getElementById('bar').style.width=(correct%11)*9+'%';
+ localStorage.score=score;
+ localStorage.correct=correct;
+}
+
+function selectTable(n){
+ selected=n;
+ lessonNumber=1;
+ [...tables.children].forEach((btn,i)=>{
+ btn.classList.toggle('active',i+1===n);
+ });
+ showLesson();
+ newQuestion();
+}
+
+function showLesson(){
+ document.getElementById('lesson').innerHTML=
+ `<div class="equation">${selected} × ${lessonNumber} = ${selected*lessonNumber}</div>
+ <div>${selected} گروه ${lessonNumber} تایی می‌شود ${selected*lessonNumber}</div>`;
+}
+
+function nextLesson(){
+ lessonNumber++;
+ if(lessonNumber>10)lessonNumber=1;
+ showLesson();
+}
+
+function newQuestion(){
+ a=selected;
+ b=Math.floor(Math.random()*10)+1;
+ answered=false;
+ document.getElementById('question').textContent=`${a} × ${b} = ؟`;
+ document.getElementById('answer').value='';
+ document.getElementById('feedback').textContent='';
+ document.getElementById('answer').focus();
+}
+
+function checkAnswer(){
+ if(answered)return;
+ const input=document.getElementById('answer');
+ if(input.value.trim()===''){
+ document.getElementById('feedback').textContent='اول جواب را بنویس!';
+ return;
+ }
+ answered=true;
+ const value=Number(input.value);
+ if(value===a*b){
+ score+=10;
+ correct++;
+ document.getElementById('feedback').textContent='🎉 آفرین! جواب درست است.';
+ document.getElementById('feedback').style.color='green';
+ }else{
+ document.getElementById('feedback').textContent=`جواب درست ${a*b} است. دوباره تمرین کن!`;
+ document.getElementById('feedback').style.color='#d45b55';
+ }
+ updateStats();
+}
+
+function resetProgress(){
+ if(confirm('امتیازها و پیشرفتت پاک شوند؟')){
+ score=0;correct=0;updateStats();
+ }
+}
+
+document.getElementById('answer').addEventListener('keydown',e=>{
+ if(e.key==='Enter')checkAnswer();
+});
+
+updateStats();
+selectTable(1);
+</script>
+</body>
+</html>
