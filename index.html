@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -37,10 +37,17 @@ button{
 .tables button.active{background:#6657e8;color:white}
 .panel{margin-top:15px}
 #lesson{text-align:center;line-height:2.2}
-.equation{font-size:26px;font-weight:bold;color:#6657e8;margin:12px}
+.equation{
+ font-size:26px;font-weight:bold;color:#6657e8;margin:12px;
+}
+.ltr{
+ direction:ltr;
+ unicode-bidi:isolate;
+ display:inline-block;
+}
 .primary{background:#6657e8;color:white;width:100%;margin-top:12px}
 .secondary{background:#eeecff;color:#5545ce;width:100%;margin-top:10px}
-input{
+input[type=number]{
  width:100%;padding:15px;border:2px solid #e4e1f6;
  border-radius:12px;font-size:22px;text-align:center;
  font-family:inherit;outline:none;
@@ -50,6 +57,17 @@ input:focus{border-color:#6657e8}
 .hidden{display:none}
 .progress{height:10px;background:#eee;border-radius:10px;overflow:hidden;margin-top:12px}
 #bar{height:100%;width:0;background:#6657e8;transition:.3s}
+.mode-setting{
+ display:flex;align-items:center;justify-content:space-between;
+ background:#f5f3ff;padding:13px;border-radius:12px;
+ margin-bottom:15px;gap:10px;
+}
+.mode-setting label{font-size:14px;line-height:1.8;cursor:pointer}
+.mode-setting input{
+ width:20px;height:20px;accent-color:#6657e8;
+ cursor:pointer;flex-shrink:0;
+}
+.mode-description{font-size:12px;color:#777;margin-top:3px}
 footer{text-align:center;color:#888;font-size:12px;padding:25px}
 </style>
 </head>
@@ -76,6 +94,17 @@ footer{text-align:center;color:#888;font-size:12px;padding:25px}
 
 <div class="panel">
 <h2>🎯 تمرین ضرب</h2>
+
+<div class="mode-setting">
+ <div>
+  <label for="randomMode"><strong>🎲 سؤال‌های تصادفی</strong></label>
+  <div class="mode-description" id="modeDescription">
+   سؤال‌ها به‌صورت شانسی نمایش داده می‌شوند.
+  </div>
+ </div>
+ <input type="checkbox" id="randomMode" checked>
+</div>
+
 <div id="question" class="equation">برای شروع دکمه را بزن!</div>
 <input id="answer" type="number" inputmode="numeric" placeholder="جوابت را بنویس">
 <button class="primary" onclick="checkAnswer()">بررسی جواب</button>
@@ -92,11 +121,16 @@ footer{text-align:center;color:#888;font-size:12px;padding:25px}
 let selected=1;
 let lessonNumber=1;
 let a=1,b=1;
+let sequentialNumber=1;
+
 let score=Number(localStorage.score||0);
 let correct=Number(localStorage.correct||0);
 let answered=false;
 
 const tables=document.getElementById('tables');
+const randomMode=document.getElementById('randomMode');
+
+randomMode.checked=localStorage.randomMode!=='false';
 
 for(let i=1;i<=10;i++){
  const btn=document.createElement('button');
@@ -116,17 +150,27 @@ function updateStats(){
 function selectTable(n){
  selected=n;
  lessonNumber=1;
+ sequentialNumber=1;
+
  [...tables.children].forEach((btn,i)=>{
  btn.classList.toggle('active',i+1===n);
  });
+
  showLesson();
  newQuestion();
 }
 
 function showLesson(){
  document.getElementById('lesson').innerHTML=
- `<div class="equation">${selected} × ${lessonNumber} = ${selected*lessonNumber}</div>
- <div>${selected} گروه ${lessonNumber} تایی می‌شود ${selected*lessonNumber}</div>`;
+ `<div class="equation">
+ <span class="ltr">${selected} × ${lessonNumber} = ${selected*lessonNumber}</span>
+ </div>
+ <div>
+ <span class="ltr">${selected}</span> گروه
+ <span class="ltr">${lessonNumber}</span>
+ تایی می‌شود
+ <span class="ltr">${selected*lessonNumber}</span>
+ </div>`;
 }
 
 function nextLesson(){
@@ -135,11 +179,36 @@ function nextLesson(){
  showLesson();
 }
 
+function updateMode(){
+ localStorage.randomMode=randomMode.checked;
+ document.getElementById('modeDescription').textContent=
+ randomMode.checked
+ ? 'سؤال‌ها به‌صورت شانسی نمایش داده می‌شوند.'
+ : 'سؤال‌ها به ترتیب از ۱ تا ۱۰ نمایش داده می‌شوند.';
+}
+
+randomMode.addEventListener('change',()=>{
+ updateMode();
+ sequentialNumber=1;
+ newQuestion();
+});
+
 function newQuestion(){
  a=selected;
- b=Math.floor(Math.random()*10)+1;
+
+ if(randomMode.checked){
+  b=Math.floor(Math.random()*10)+1;
+ }else{
+  b=sequentialNumber;
+  sequentialNumber++;
+  if(sequentialNumber>10)sequentialNumber=1;
+ }
+
  answered=false;
- document.getElementById('question').textContent=`${a} × ${b} = ؟`;
+
+ document.getElementById('question').innerHTML=
+ `<span class="ltr">${a} × ${b} = ؟</span>`;
+
  document.getElementById('answer').value='';
  document.getElementById('feedback').textContent='';
  document.getElementById('answer').focus();
@@ -147,28 +216,37 @@ function newQuestion(){
 
 function checkAnswer(){
  if(answered)return;
+
  const input=document.getElementById('answer');
+
  if(input.value.trim()===''){
  document.getElementById('feedback').textContent='اول جواب را بنویس!';
  return;
  }
+
  answered=true;
  const value=Number(input.value);
+ const feedback=document.getElementById('feedback');
+
  if(value===a*b){
  score+=10;
  correct++;
- document.getElementById('feedback').textContent='🎉 آفرین! جواب درست است.';
- document.getElementById('feedback').style.color='green';
+ feedback.textContent='🎉 آفرین! جواب درست است.';
+ feedback.style.color='green';
  }else{
- document.getElementById('feedback').textContent=`جواب درست ${a*b} است. دوباره تمرین کن!`;
- document.getElementById('feedback').style.color='#d45b55';
+ feedback.innerHTML=
+ `جواب درست <span class="ltr">${a*b}</span> است. دوباره تمرین کن!`;
+ feedback.style.color='#d45b55';
  }
+
  updateStats();
 }
 
 function resetProgress(){
  if(confirm('امتیازها و پیشرفتت پاک شوند؟')){
- score=0;correct=0;updateStats();
+ score=0;
+ correct=0;
+ updateStats();
  }
 }
 
@@ -176,8 +254,10 @@ document.getElementById('answer').addEventListener('keydown',e=>{
  if(e.key==='Enter')checkAnswer();
 });
 
+updateMode();
 updateStats();
 selectTable(1);
 </script>
 </body>
 </html>
+```
